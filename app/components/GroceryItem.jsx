@@ -5,7 +5,7 @@ module.exports = React.createClass({
   
   togglePurchased: function (e) {
     e.preventDefault();
-    if (item.props.item.purchased) {
+    if (this.props.item.purchased) {
       action.unbuy(this.props.item);
     } else {
       action.buy(this.props.item);

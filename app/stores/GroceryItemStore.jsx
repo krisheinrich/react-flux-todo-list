@@ -1,17 +1,16 @@
 var dispatcher = require('./../dispatcher.js');
+var helper = require('./../helpers/RestHelper.js');
 
-// Initialize list of items, register events, and 
+// Initialize list of items
 function GroceryItemStore() {
-  var items = [{
-    name: "Ice Cream"
-  },{
-    name: "Waffles"
-  },{
-    name: "Candy",
-    purchased: true
-  },{
-    name: "Snarks"
-  }];
+  var items = [];
+  
+  helper.get("api/items")
+  .then(function (data) {
+    items = data;
+    triggerListeners();
+  });
+  
   var listeners = [];
   
   function getItems() {
@@ -21,6 +20,8 @@ function GroceryItemStore() {
   function addGroceryItem(item) {
     items.push(item);
     triggerListeners();
+    // Post new item to server
+    helper.post("/api/items", item);
   }
   
   function deleteGroceryItem (item) {
@@ -30,21 +31,25 @@ function GroceryItemStore() {
         index = _index;
       }
     });
-    
     items.splice(index, 1);
     triggerListeners();
+    
+    helper.del('/api/items/'+item._id);
   }
   
   function setGroceryItemBought(item, isBought) {
     var _item = items.filter(function (a) { return a.name == item.name})[0];
-    item.purchased - isBought || false;
+    item.purchased = isBought || false;
     triggerListeners();
+    
+    helper.patch('/api/items/'+item._id, item);
   }
   
   function onChange(listener) {
     listeners.push(listener);
   }
   
+  // Updates any components listening to the store
   function triggerListeners() {
     listeners.forEach(function (listener) {
       listener(items);
